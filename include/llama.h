@@ -426,6 +426,7 @@ extern "C" {
 
         enum ggml_type type_k; // data type for K cache [EXPERIMENTAL]
         enum ggml_type type_v; // data type for V cache [EXPERIMENTAL]
+        enum ggml_type type_reduce; // data type for reduce operations
 
         // Keep the booleans together to avoid misalignment during copy-by-value.
         bool logits_all;  // the llama_decode() call computes all logits, not just the last one (DEPRECATED - set llama_batch.logits instead)
@@ -445,7 +446,7 @@ extern "C" {
         bool only_active_experts;
         bool k_cache_hadamard;  // if true, apply Hadamard transfrom to K-cache
         bool split_mode_graph_scheduling; // if true, force split mode graph scheduling
-        bool split_mode_f16;    // if true, cast intermediate results to f16 before copying to other GPUs
+        //bool split_mode_f16;    // if true, cast intermediate results to f16 before copying to other GPUs
         bool scheduler_async;   // if true, with split mode "graph" graph evaluation will be done using multiple threads
 
         // Abort callback
@@ -1124,7 +1125,7 @@ extern "C" {
                                int32_t   lstrip,
                                   bool   special);
 
-    /// @details Convert the provided tokens into text (inverse of llama_tokenize()).
+    /// @details Convert the provided tokens into text (inverse of common_tokenize()).
     /// @param text The char pointer must be large enough to hold the resulting text.
     /// @return Returns the number of chars/bytes on success, no more than text_len_max.
     /// @return Returns a negative number on failure - the number of chars/bytes that would have been returned.
@@ -1383,16 +1384,20 @@ LLAMA_API struct llama_grammar* llama_sampler_init_grammar_lazy_patterns(
     /// @details Adaptive p sampler initializer
     /// @param target Select tokens near this probability (valid range 0.0 to 1.0; <0 = disabled)
     /// @param decay Decay rate for target adaptation over time. lower values -> faster but less stable adaptation. (valid range 0.0 to 1.0; ≤0 = no adaptation)
-    LLAMA_API struct llama_sampler_adaptive_p * llama_sampler_init_adaptive_p(
+    LLAMA_API struct llama_sampler_adaptive_p * llama_init_adaptive_p(
            const float target,
            const float decay,
         const uint32_t seed);
 
+    void llama_prep_adaptive_p(
+                 llama_token_data_array * candidates,
+        struct llama_sampler_adaptive_p * adapt_p_ctx);
+
     /// @details Adaptive p sampler described in https://github.com/MrJackSpade/adaptive-p-docs/blob/main/README.md
     void llama_sample_adaptive_p(
-            struct llama_context * ctx,
- struct llama_sampler_adaptive_p * adapt_p_ctx,
-          llama_token_data_array * candidates);
+                   struct llama_context * ctx,
+                 llama_token_data_array * candidates,
+        struct llama_sampler_adaptive_p * adapt_p_ctx);
 
 
     /// @details Mirostat 1.0 algorithm described in the paper https://arxiv.org/abs/2007.14966. Uses tokens instead of words.
@@ -1436,8 +1441,7 @@ LLAMA_API struct llama_grammar* llama_sampler_init_grammar_lazy_patterns(
     llama_token llama_sample_token_adaptive_p(
             struct llama_context * ctx,
           llama_token_data_array * candidates,
- struct llama_sampler_adaptive_p * adapt_p_ctx,
-                           float * orig_probs);
+ struct llama_sampler_adaptive_p * adapt_p_ctx);
 
     //
     // Model split
