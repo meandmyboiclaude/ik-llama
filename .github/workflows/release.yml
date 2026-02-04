@@ -169,7 +169,7 @@ jobs:
         run: |
           cmake -B build \
             -DLLAMA_FATAL_WARNINGS=OFF \
-            -DGGML_OPENMP=ON ^
+            -DGGML_OPENMP=ON \
             -DGGML_MAX_CONTEXTS=2048 \
             ${{ env.CMAKE_ARGS }}
           cmake --build build --config Release -j $(nproc)
