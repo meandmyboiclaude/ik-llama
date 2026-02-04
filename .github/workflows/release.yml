@@ -843,18 +843,7 @@ jobs:
             - [Windows x64 (CUDA 13.1) AVX512 VNNI VBMI](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-win-cuda-13.1-x64.zip)
             - [Windows x64 (CUDA 13.1) AVX512 VNNI VBMI BF16](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-win-cuda-13.1-x64.zip)
 
-            For ref. about CPU capabilities (always choose AVX2 if your CPU isn't AVX512-capable):
-
-            | Microarchitecture | Year | \`AVX512\_VNNI\` | \`AVX512\_VBMI\` | \`AVX512\_BF16\` | Notes |
-            |--------------------|------|------------------|------------------|------------------|-------|
-            | **Skylake-X / Skylake-SP** | 2017 | ❌ | ❌ | ❌ | Only basic AVX512F/CD/BW/DQ/VL. No VNNI/VBMI/BF16. |
-            | **Cascade Lake (Xeon 2nd Gen)** | 2019 | ✅ | ❌ | ❌ | Added VNNI only. No VBMI or BF16. |
-            | **Cooper Lake (Xeon 3rd Gen, limited)** | 2020 | ✅ | ❌ | ✅ | First Intel CPUs with BF16; still missing VBMI. |
-            | **Ice Lake (Server & Client)** | 2020 | ✅ | ✅ | ❌ | Both VNNI + VBMI, but no BF16. |
-            | **Tiger Lake / Alder Lake (P-cores)** | 2021–2022 | ✅ | ✅ | ❌ | BF16 not supported; AVX-512 often fused-off in consumer parts. |
-            | **Sapphire Rapids (Xeon 4th Gen)** | 2023 | ✅ | ✅ | ✅ | Full support: VNNI, VBMI, BF16. |
-            | **Emerald Rapids / Granite Rapids (Xeon 5th–6th Gen)** | 2024–2025 | ✅ | ✅ | ✅ | Same as Sapphire, plus AVX10 transition. |
-            | **AMD Zen 4 / Zen 5** | 2022–2025 | ✅ | ✅ | ✅ | Implements AVX512\_VNNI, VBMI/VBMI2, and BF16 equivalents. |
+            For ref. about CPU capabilities (always choose AVX2 if your CPU isn't AVX512-capable): https://github.com/Thireus/GGUF-Tool-Suite/issues/47#issuecomment-3681021233
 
             For any issues please open a ticket on https://github.com/Thireus/GGUF-Tool-Suite/issues
 
