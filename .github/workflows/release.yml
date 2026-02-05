@@ -781,12 +781,13 @@ jobs:
           for zip_file in artifact/llama-*.zip artifact/cudart-llama-*12.8*.zip; do
             base_name=$(basename "$zip_file" .zip)
             zip_name="ik_llama-${base_name/llama-/}.zip"
+            zip_name=$(echo "$zip_name" | sed -E "s/-[^-]+-b[0-9]+-[a-f0-9]{7}-bin-/-${{ steps.tag.outputs.name }}-bin-/g")
             echo "Moving $zip_file to release/$zip_name"
             mv "$zip_file" "release/$zip_name"
           done
 
-          echo "Moving any remaining artifacts..."
-          mv -v artifact/*.zip release/ || true
+          #echo "Moving any remaining artifacts..."
+          #mv -v artifact/*.zip release/ || true
 
       - name: Create release
         id: create_release
@@ -802,7 +803,7 @@ jobs:
 
             </details>
 
-            **macOS:**
+            **macOS (you might want to disable Metal by using `-dev none` for better performances):**
             - [macOS Apple Silicon (arm64)](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-macos-arm64.zip)
             - [macOS Intel (x64) AVX2](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-macos-x64-avx2.zip)
             - [macOS Intel (x64) AVX512](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-macos-x64-avx512.zip)
@@ -828,12 +829,12 @@ jobs:
             - [Windows x64 (CPU) AVX512 VNNI VBMI BF16](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-win-cpu-x64-avx512_vnni_vbmi_bf16.zip)
 
             **Windows CUDA 12.8:**
-            - [Windows x64 (CUDA 12.8) AVX2](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-win-cuda-12.8-x64-avx2.zip) - [CUDA 12.8.8 DLLs](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-cuda-bin-win-cuda-12.8-x64-avx2.zip)
-            - [Windows x64 (CUDA 12.8) AVX512](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-win-cuda-12.8-x64-avx512.zip) - [CUDA 12.8.8 DLLs](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-cuda-bin-win-cuda-12.8-x64-avx512.zip)
-            - [Windows x64 (CUDA 12.8) AVX512 VNNI](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-win-cuda-12.8-x64-avx512_vnni.zip) - [CUDA 12.8.8 DLLs](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-cuda-bin-win-cuda-12.8-x64-avx512_vnni.zip)
-            - [Windows x64 (CUDA 12.8) AVX512 VNNI BF16](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-win-cuda-12.8-x64-avx512_vnni_bf16.zip) - [CUDA 12.8.8 DLLs](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-cuda-bin-win-cuda-12.8-x64-avx512_vnni_bf16.zip)
-            - [Windows x64 (CUDA 12.8) AVX512 VNNI VBMI](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-win-cuda-12.8-x64-x64-avx512_vnni_vbmi.zip) - [CUDA 12.8.8 DLLs](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-cuda-bin-win-cuda-12.8-x64-avx512_vnni_vbmi.zip)
-            - [Windows x64 (CUDA 12.8) AVX512 VNNI VBMI BF16](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-win-cuda-12.8-x64-avx512_vnni_vbmi_bf16.zip) - [CUDA 12.8.8 DLLs](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-cuda-bin-win-cuda-12.8-x64-avx512_vnni_vbmi_bf16.zip)
+            - [Windows x64 (CUDA 12.8) AVX2](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-win-cuda-12.8-x64-avx2.zip) - [CUDA 12.8 DLLs](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-cudart-${{ steps.tag.outputs.name }}-bin-win-cuda-12.8-x64-avx2.zip)
+            - [Windows x64 (CUDA 12.8) AVX512](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-win-cuda-12.8-x64-avx512.zip) - [CUDA 12.8 DLLs](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-cudart-${{ steps.tag.outputs.name }}-bin-win-cuda-12.8-x64-avx512.zip)
+            - [Windows x64 (CUDA 12.8) AVX512 VNNI](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-win-cuda-12.8-x64-avx512_vnni.zip) - [CUDA 12.8 DLLs](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-cudart-${{ steps.tag.outputs.name }}-bin-win-cuda-12.8-x64-avx512_vnni.zip)
+            - [Windows x64 (CUDA 12.8) AVX512 VNNI BF16](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-win-cuda-12.8-x64-avx512_vnni_bf16.zip) - [CUDA 12.8 DLLs](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-cudart-${{ steps.tag.outputs.name }}-bin-win-cuda-12.8-x64-avx512_vnni_bf16.zip)
+            - [Windows x64 (CUDA 12.8) AVX512 VNNI VBMI](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-win-cuda-12.8-x64-x64-avx512_vnni_vbmi.zip) - [CUDA 12.8 DLLs](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-cudart-${{ steps.tag.outputs.name }}-bin-win-cuda-12.8-x64-avx512_vnni_vbmi.zip)
+            - [Windows x64 (CUDA 12.8) AVX512 VNNI VBMI BF16](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-win-cuda-12.8-x64-avx512_vnni_vbmi_bf16.zip) - [CUDA 12.8 DLLs](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-cudart-${{ steps.tag.outputs.name }}-bin-win-cuda-12.8-x64-avx512_vnni_vbmi_bf16.zip)
 
             **Windows CUDA 13.1:**
             - [Windows x64 (CUDA 13.1) AVX2](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-win-cuda-13.1-x64-avx2.zip)
