@@ -803,7 +803,7 @@ jobs:
 
             </details>
 
-            **macOS (you might want to disable Metal by using `-dev none` for better performances):**
+            **macOS (you might want to try disabling Metal by using `-dev none` to check if it performs better):**
             - [macOS Apple Silicon (arm64)](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-macos-arm64.zip)
             - [macOS Intel (x64) AVX2](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-macos-x64-avx2.zip)
             - [macOS Intel (x64) AVX512](https://github.com/Thireus/ik_llama.cpp/releases/download/${{ steps.tag.outputs.name }}/ik_llama-${{ steps.tag.outputs.name }}-bin-macos-x64-avx512.zip)
