@@ -540,11 +540,6 @@ jobs:
             label: broadwell
             instr: avx2
           - arch: x64
-            march: common-avx512
-            mtune: common-avx512
-            label: common-avx512
-            instr: avx512
-          - arch: x64
             march: skylake
             mtune: skylake
             label: skylake
@@ -952,11 +947,6 @@ jobs:
             mtune: broadwell
             label: broadwell
             instr: avx2
-          - arch: x64
-            march: common-avx512
-            mtune: common-avx512
-            label: common-avx512
-            instr: avx512
           - arch: x64
             march: skylake
             mtune: skylake
@@ -1563,7 +1553,6 @@ jobs:
           - [Windows haswell (CPU) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cpu-haswell-avx2.zip)
           - [Windows core-avx2 (CPU) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cpu-core-avx2-avx2.zip)
           - [Windows broadwell (CPU) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cpu-broadwell-avx2.zip)
-          - [Windows common-avx512 (CPU) AVX512](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cpu-common-avx512-avx512.zip)
           - [Windows skylake (CPU) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cpu-skylake-avx2.zip)
           - [Windows skylake-avx512 (CPU) AVX512](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cpu-skylake-avx512-avx512.zip)
           - [Windows skx (CPU) AVX512](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cpu-skx-avx512.zip)
@@ -1595,7 +1584,6 @@ jobs:
           - [Windows haswell (CUDA 13.2) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-13.2-x64-haswell-avx2.zip) - [CUDA 13.2 DLLs](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-13.2-x64-haswell-avx2.zip)
           - [Windows core-avx2 (CUDA 13.2) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-13.2-x64-core-avx2-avx2.zip) - [CUDA 13.2 DLLs](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-13.2-x64-core-avx2-avx2.zip)
           - [Windows broadwell (CUDA 13.2) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-13.2-x64-broadwell-avx2.zip) - [CUDA 13.2 DLLs](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-13.2-x64-broadwell-avx2.zip)
-          - [Windows common-avx512 (CUDA 13.2) AVX512](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-13.2-x64-common-avx512-avx512.zip) - [CUDA 13.2 DLLs](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-13.2-x64-common-avx512-avx512.zip)
           - [Windows skylake (CUDA 13.2) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-13.2-x64-skylake-avx2.zip) - [CUDA 13.2 DLLs](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-13.2-x64-skylake-avx2.zip)
           - [Windows skylake-avx512 (CUDA 13.2) AVX512](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-13.2-x64-skylake-avx512-avx512.zip) - [CUDA 13.2 DLLs](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-13.2-x64-skylake-avx512-avx512.zip)
           - [Windows skx (CUDA 13.2) AVX512](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-13.2-x64-skx-avx512.zip) - [CUDA 13.2 DLLs](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-13.2-x64-skx-avx512.zip)
