@@ -1677,7 +1677,7 @@ jobs:
           Write-Host "Wrote release body to $outFile (length: $((Get-Content $outFile -Raw).Length) chars)"
 
       - name: Create release using GitHub API (avoids expression length limits)
-        id: create_release_api
+        id: create_release
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
