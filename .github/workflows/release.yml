@@ -524,10 +524,6 @@ jobs:
             mtune: znver5
             label: znver5
             instr: avx512_vnni_vbmi_bf16
-          # - arch: x64
-          #   march: znver6
-          #   mtune: znver6
-          #   label: znver6
           #   instr: avx512_vnni_vbmi_bf16
           - arch: x64
             march: haswell
@@ -936,10 +932,6 @@ jobs:
             mtune: znver5
             label: znver5
             instr: avx512_vnni_vbmi_bf16
-          # - arch: x64
-          #   march: znver6
-          #   mtune: znver6
-          #   label: znver6
           #   instr: avx512_vnni_vbmi_bf16
           - arch: x64
             march: haswell
