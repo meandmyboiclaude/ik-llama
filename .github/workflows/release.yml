@@ -1558,6 +1558,8 @@ jobs:
           $commit
 
           </details>
+          
+          For ref. about CPU capabilities (always choose AVX2 if your CPU isn't AVX512-capable): https://github.com/Thireus/GGUF-Tool-Suite/issues/47#issuecomment-3681021233
 
           **macOS (you might want to try disabling Metal by using `-dev none` to check if it performs better):**
           - [macOS Apple Silicon (arm64)](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-macos-arm64.zip)
@@ -1600,7 +1602,7 @@ jobs:
           - [Ubuntu x64 (CUDA 13.2) AVX512 VNNI VBMI](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-ubuntu-cuda-13.2-x64-avx512_vnni_vbmi.zip) - [CUDA 13.2 DLLs](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-ubuntu-cuda-13.2-x64-avx512_vnni_vbmi.zip)
           - [Ubuntu x64 (CUDA 13.2) AVX512 VNNI VBMI BF16](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-ubuntu-cuda-13.2-x64-avx512_vnni_vbmi_bf16.zip) - [CUDA 13.2 DLLs](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-ubuntu-cuda-13.2-x64-avx512_vnni_vbmi_bf16.zip)
 
-          **Windows CPU-only:**
+          **Windows CPU-only (try x86_64_v3 if you're unsure of your processor architecture):**
           - [Windows x86_64_v3 (CPU) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cpu-x86_64_v3-avx2.zip)
           - [Windows x86_64_v4 (CPU) AVX512](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cpu-x86_64_v4-avx512.zip)
           - [Windows znver1 (CPU) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cpu-znver1-avx2.zip)
@@ -1631,11 +1633,11 @@ jobs:
           - [Windows graniterapids (CPU) AVX512 VNNI VBMI BF16](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cpu-graniterapids-avx512_vnni_vbmi_bf16.zip)
           - [Windows emeraldrapids (CPU) AVX512 VNNI VBMI BF16](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cpu-emeraldrapids-avx512_vnni_vbmi_bf16.zip)
 
-          **Windows CUDA 12.8:**
+          **Windows CUDA 12.8 (try x86_64_v3 if you're unsure of your processor architecture):**
           - [Windows x86_64_v3 (CUDA 12.8) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-12.8-x64-x86_64_v3-avx2.zip) - [CUDA 12.8 DLLs](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-12.8-x64-x86_64_v3-avx2.zip)
           - [Windows x86_64_v4 (CUDA 12.8) AVX512](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-12.8-x64-x86_64_v4-avx512.zip) - [CUDA 12.8 DLLs](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-12.8-x64-x86_64_v4-avx512.zip)
 
-          **Windows CUDA 13.2:**
+          **Windows CUDA 13.2 (try x86_64_v3 if you're unsure of your processor architecture):**
           - [Windows x86_64_v3 (CUDA 13.2) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-13.2-x64-x86_64_v3-avx2.zip) - [CUDA 13.2 DLLs](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-13.2-x64-x86_64_v3-avx2.zip)
           - [Windows x86_64_v4 (CUDA 13.2) AVX512](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-13.2-x64-x86_64_v4-avx512.zip) - [CUDA 13.2 DLLs](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-13.2-x64-x86_64_v4-avx512.zip)
           - [Windows znver1 (CUDA 13.2) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-13.2-x64-znver1-avx2.zip) - [CUDA 13.2 DLLs](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-13.2-x64-znver1-avx2.zip)
@@ -1665,8 +1667,6 @@ jobs:
           - [Windows grandridge (CUDA 13.2) AVX512 VNNI VBMI BF16](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-13.2-x64-grandridge-avx512_vnni_vbmi_bf16.zip) - [CUDA 13.2 DLLs](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-13.2-x64-grandridge-avx512_vnni_vbmi_bf16.zip)
           - [Windows graniterapids (CUDA 13.2) AVX512 VNNI VBMI BF16](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-13.2-x64-graniterapids-avx512_vnni_vbmi_bf16.zip) - [CUDA 13.2 DLLs](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-13.2-x64-graniterapids-avx512_vnni_vbmi_bf16.zip)
           - [Windows emeraldrapids (CUDA 13.2) AVX512 VNNI VBMI BF16](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-13.2-x64-emeraldrapids-avx512_vnni_vbmi_bf16.zip) - [CUDA 13.2 DLLs](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-13.2-x64-emeraldrapids-avx512_vnni_vbmi_bf16.zip)
-
-          For ref. about CPU capabilities (always choose AVX2 if your CPU isn't AVX512-capable): https://github.com/Thireus/GGUF-Tool-Suite/issues/47#issuecomment-3681021233
 
           For any issues please open a ticket on https://github.com/Thireus/GGUF-Tool-Suite/issues
           "@
