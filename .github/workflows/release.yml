@@ -1709,6 +1709,8 @@ jobs:
           Write-Host "Creating release $tag for $repo..."
           $resp = Invoke-RestMethod -Uri $url -Method Post -Headers $headers -Body $payload -ContentType "application/json"
           Write-Host "Release created: $($resp.html_url)"
+          # set the output so subsequent steps can use it
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "id=$($resp.id)"
 
       - name: Upload release
         id: upload_release
