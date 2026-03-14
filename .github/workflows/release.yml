@@ -1903,7 +1903,10 @@ jobs:
           - [Windows x64 (CUDA 13.1) AVX512 VNNI VBMI](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-13.1-x64-x64-avx512_vnni_vbmi.zip) - [DLLs only](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-13.1-x64-avx512_vnni_vbmi.zip)
           - [Windows x64 (CUDA 13.1) AVX512 VNNI VBMI BF16](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-13.1-x64-avx512_vnni_vbmi_bf16.zip) - [DLLs only](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-13.1-x64-avx512_vnni_vbmi_bf16.zip)
 
-          Experimental Windows Clang builds - which are supposed to run faster when tailored to your specific CPU architecture:
+          ---
+          ### Experimental Windows Clang builds can be found below
+
+          *These special builds are supposed to run faster when tailored to your specific CPU architecture.*
 
           **Windows Clang CPU-only (try x86_64_v3 if you're unsure of your processor architecture):**
           - [Windows x86_64_v3 (CPU) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cpu-x86_64_v3-avx2.zip)
