@@ -128,6 +128,7 @@ jobs:
             -DGGML_METAL_EMBED_LIBRARY=ON \
             -DGGML_RPC=OFF \
             -DGGML_MAX_CONTEXTS=2048 \
+            -DGGML_METAL_NDEBUG=ON \
             ${{ env.CMAKE_ARGS }}
           cmake --build build --config Release -j $(sysctl -n hw.logicalcpu)
 
