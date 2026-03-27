@@ -1885,7 +1885,7 @@ jobs:
 
           For ref. about CPU capabilities (always choose AVX2 if your CPU isn't AVX512-capable): https://github.com/Thireus/GGUF-Tool-Suite/issues/47#issuecomment-3681021233
 
-          **macOS (you might want to try disabling Metal by using `-dev none` to check if it performs better):**
+          **macOS (you might want to try `-ngl 0` or `-dev none` which disables Metal to check if it performs better):**
           - [macOS Apple Silicon (arm64)](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-macos-arm64.zip)
           - [macOS Intel (x64) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-macos-x64-avx2.zip)
           - [macOS Intel (x64) AVX512](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-macos-x64-avx512.zip)
