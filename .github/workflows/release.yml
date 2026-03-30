@@ -362,7 +362,7 @@ jobs:
     #if: false
     strategy:
       matrix:
-        cuda: ['12.8', '13.2'] # '11.7',
+        cuda: ['12.6', '13.2'] # '11.7',
         instr: ['avx2', 'avx512', 'avx512_vnni', 'avx512_vnni_bf16', 'avx512_vnni_vbmi', 'avx512_vnni_vbmi_bf16'] # 'avx', 'noavx' won't compile because missing declarations all over the place
         include:
           - build: 'x64'
@@ -1062,7 +1062,7 @@ jobs:
     strategy:
       matrix:
         arch: ['x64'] #, 'arm64'
-        cuda: ['12.8', '13.2'] # , '11.7'
+        cuda: ['12.6', '13.2'] # , '11.7'
         instr: ['avx2', 'avx512', 'avx512_vnni', 'avx512_vnni_bf16', 'avx512_vnni_vbmi', 'avx512_vnni_vbmi_bf16'] # 'avx', 'noavx' won't compile because missing declarations all over the place
         
     steps:
@@ -1213,13 +1213,13 @@ jobs:
     strategy:
       matrix:
         include:
-          - cuda: '12.8'
+          - cuda: '12.6'
             arch: x64
             march: x86-64-v3
             mtune: ""
             label: x86_64_v3
             instr: avx2
-          - cuda: '12.8'
+          - cuda: '12.6'
             arch: x64
             march: x86-64-v4
             mtune: ""
@@ -1885,6 +1885,7 @@ jobs:
           ```
 
           For ref. about CPU capabilities (always choose AVX2 if your CPU isn't AVX512-capable): https://github.com/Thireus/GGUF-Tool-Suite/issues/47#issuecomment-3681021233
+          For ref. CUDA 12.6 supports Maxwell (5.0) to Hopper (9.0), while CUDA 13.2 supports Turing (7.5) to Blackwell (12.1) microarchitectures: https://en.wikipedia.org/wiki/CUDA
 
           **macOS:**
 
@@ -1918,13 +1919,13 @@ jobs:
           - [Ubuntu x64 (Vulkan) AVX512 VNNI VBMI](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-ubuntu-vulkan-x64-avx512_vnni_vbmi.zip)
           - [Ubuntu x64 (Vulkan) AVX512 VNNI VBMI BF16](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-ubuntu-vulkan-x64-avx512_vnni_vbmi_bf16.zip)
 
-          **Linux CUDA 12.8:**
-          - [Ubuntu x64 (CUDA 12.8) AVX2](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-$tag-bin-ubuntu-cuda-12.8-x64-avx2.zip) - [With Libraries](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-cudart-$tag-bin-ubuntu-cuda-12.8-x64-avx2.zip)
-          - [Ubuntu x64 (CUDA 12.8) AVX512](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-$tag-bin-ubuntu-cuda-12.8-x64-avx512.zip) - [With Libraries](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-cudart-$tag-bin-ubuntu-cuda-12.8-x64-avx512.zip)
-          - [Ubuntu x64 (CUDA 12.8) AVX512 VNNI](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-$tag-bin-ubuntu-cuda-12.8-x64-avx512_vnni.zip) - [With Libraries](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-cudart-$tag-bin-ubuntu-cuda-12.8-x64-avx512_vnni.zip)
-          - [Ubuntu x64 (CUDA 12.8) AVX512 VNNI BF16](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-$tag-bin-ubuntu-cuda-12.8-x64-avx512_vnni_bf16.zip) - [With Libraries](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-cudart-$tag-bin-ubuntu-cuda-12.8-x64-avx512_vnni_bf16.zip)
-          - [Ubuntu x64 (CUDA 12.8) AVX512 VNNI VBMI](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-$tag-bin-ubuntu-cuda-12.8-x64-x64-avx512_vnni_vbmi.zip) - [With Libraries](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-cudart-$tag-bin-ubuntu-cuda-12.8-x64-avx512_vnni_vbmi.zip)
-          - [Ubuntu x64 (CUDA 12.8) AVX512 VNNI VBMI BF16](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-$tag-bin-ubuntu-cuda-12.8-x64-avx512_vnni_vbmi_bf16.zip) - [With Libraries](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-cudart-$tag-bin-ubuntu-cuda-12.8-x64-avx512_vnni_vbmi_bf16.zip)
+          **Linux CUDA 12.6:**
+          - [Ubuntu x64 (CUDA 12.6) AVX2](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-$tag-bin-ubuntu-cuda-12.6-x64-avx2.zip) - [With Libraries](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-cudart-$tag-bin-ubuntu-cuda-12.6-x64-avx2.zip)
+          - [Ubuntu x64 (CUDA 12.6) AVX512](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-$tag-bin-ubuntu-cuda-12.6-x64-avx512.zip) - [With Libraries](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-cudart-$tag-bin-ubuntu-cuda-12.6-x64-avx512.zip)
+          - [Ubuntu x64 (CUDA 12.6) AVX512 VNNI](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-$tag-bin-ubuntu-cuda-12.6-x64-avx512_vnni.zip) - [With Libraries](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-cudart-$tag-bin-ubuntu-cuda-12.6-x64-avx512_vnni.zip)
+          - [Ubuntu x64 (CUDA 12.6) AVX512 VNNI BF16](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-$tag-bin-ubuntu-cuda-12.6-x64-avx512_vnni_bf16.zip) - [With Libraries](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-cudart-$tag-bin-ubuntu-cuda-12.6-x64-avx512_vnni_bf16.zip)
+          - [Ubuntu x64 (CUDA 12.6) AVX512 VNNI VBMI](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-$tag-bin-ubuntu-cuda-12.6-x64-x64-avx512_vnni_vbmi.zip) - [With Libraries](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-cudart-$tag-bin-ubuntu-cuda-12.6-x64-avx512_vnni_vbmi.zip)
+          - [Ubuntu x64 (CUDA 12.6) AVX512 VNNI VBMI BF16](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-$tag-bin-ubuntu-cuda-12.6-x64-avx512_vnni_vbmi_bf16.zip) - [With Libraries](https://github.com/Thireus/ik_llama.cpp/releases/download/$tag/ik_llama-cudart-$tag-bin-ubuntu-cuda-12.6-x64-avx512_vnni_vbmi_bf16.zip)
 
           **Linux CUDA 13.2:**
           - [Ubuntu x64 (CUDA 13.2) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-ubuntu-cuda-13.2-x64-avx2.zip) - [With Libraries](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-ubuntu-cuda-13.2-x64-avx2.zip)
@@ -1942,13 +1943,13 @@ jobs:
           - [Windows x64 (CPU) AVX512 VNNI VBMI](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cpu-x64-avx512_vnni_vbmi.zip)
           - [Windows x64 (CPU) AVX512 VNNI VBMI BF16](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cpu-x64-avx512_vnni_vbmi_bf16.zip)
 
-          **Windows MSVC CUDA 12.8:**
-          - [Windows x64 (CUDA 12.8) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-12.8-x64-avx2.zip) - [With Libraries](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-12.8-x64-avx2.zip)
-          - [Windows x64 (CUDA 12.8) AVX512](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-12.8-x64-avx512.zip) - [With Libraries](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-12.8-x64-avx512.zip)
-          - [Windows x64 (CUDA 12.8) AVX512 VNNI](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-12.8-x64-avx512_vnni.zip) - [With Libraries](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-12.8-x64-avx512_vnni.zip)
-          - [Windows x64 (CUDA 12.8) AVX512 VNNI BF16](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-12.8-x64-avx512_vnni_bf16.zip) - [With Libraries](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-12.8-x64-avx512_vnni_bf16.zip)
-          - [Windows x64 (CUDA 12.8) AVX512 VNNI VBMI](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-12.8-x64-x64-avx512_vnni_vbmi.zip) - [With Libraries](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-12.8-x64-avx512_vnni_vbmi.zip)
-          - [Windows x64 (CUDA 12.8) AVX512 VNNI VBMI BF16](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-12.8-x64-avx512_vnni_vbmi_bf16.zip) - [With Libraries](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-12.8-x64-avx512_vnni_vbmi_bf16.zip)
+          **Windows MSVC CUDA 12.6:**
+          - [Windows x64 (CUDA 12.6) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-12.6-x64-avx2.zip) - [With Libraries](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-12.6-x64-avx2.zip)
+          - [Windows x64 (CUDA 12.6) AVX512](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-12.6-x64-avx512.zip) - [With Libraries](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-12.6-x64-avx512.zip)
+          - [Windows x64 (CUDA 12.6) AVX512 VNNI](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-12.6-x64-avx512_vnni.zip) - [With Libraries](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-12.6-x64-avx512_vnni.zip)
+          - [Windows x64 (CUDA 12.6) AVX512 VNNI BF16](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-12.6-x64-avx512_vnni_bf16.zip) - [With Libraries](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-12.6-x64-avx512_vnni_bf16.zip)
+          - [Windows x64 (CUDA 12.6) AVX512 VNNI VBMI](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-12.6-x64-x64-avx512_vnni_vbmi.zip) - [With Libraries](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-12.6-x64-avx512_vnni_vbmi.zip)
+          - [Windows x64 (CUDA 12.6) AVX512 VNNI VBMI BF16](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-12.6-x64-avx512_vnni_vbmi_bf16.zip) - [With Libraries](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-12.6-x64-avx512_vnni_vbmi_bf16.zip)
 
           **Windows MSVC CUDA 13.2:**
           - [Windows x64 (CUDA 13.2) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-13.2-x64-avx2.zip) - [With Libraries](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-13.2-x64-avx2.zip)
@@ -1994,9 +1995,9 @@ jobs:
           - [Windows graniterapids (CPU) AVX512 VNNI VBMI BF16](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cpu-graniterapids-avx512_vnni_vbmi_bf16.zip)
           - [Windows emeraldrapids (CPU) AVX512 VNNI VBMI BF16](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cpu-emeraldrapids-avx512_vnni_vbmi_bf16.zip)
 
-          **Windows Clang CUDA 12.8 (try x86_64_v3 if you're unsure of your processor architecture, but don't expect better performances than MSVC builds):**
-          - [Windows x86_64_v3 (CUDA 12.8) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-12.8-x64-x86_64_v3-avx2.zip) - [With Libraries](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-12.8-x64-x86_64_v3-avx2.zip)
-          - [Windows x86_64_v4 (CUDA 12.8) AVX512](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-12.8-x64-x86_64_v4-avx512.zip) - [With Libraries](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-12.8-x64-x86_64_v4-avx512.zip)
+          **Windows Clang CUDA 12.6 (try x86_64_v3 if you're unsure of your processor architecture, but don't expect better performances than MSVC builds):**
+          - [Windows x86_64_v3 (CUDA 12.6) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-12.6-x64-x86_64_v3-avx2.zip) - [With Libraries](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-12.6-x64-x86_64_v3-avx2.zip)
+          - [Windows x86_64_v4 (CUDA 12.6) AVX512](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-12.6-x64-x86_64_v4-avx512.zip) - [With Libraries](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-12.6-x64-x86_64_v4-avx512.zip)
 
           **Windows Clang CUDA 13.2 (try x86_64_v3 if you're unsure of your processor architecture, but don't expect better performances than MSVC builds):**
           - [Windows x86_64_v3 (CUDA 13.2) AVX2](https://github.com/$repo/releases/download/$tag/ik_llama-$tag-bin-win-cuda-13.2-x64-x86_64_v3-avx2.zip) - [With Libraries](https://github.com/$repo/releases/download/$tag/ik_llama-cudart-$tag-bin-win-cuda-13.2-x64-x86_64_v3-avx2.zip)
