@@ -1148,6 +1148,11 @@ bool gpt_params_find_arg(int argc, char ** argv, const std::string & arg, gpt_pa
         params.lora_init_without_apply = true;
         return true;
     }
+    if (arg == "--lora-auto-embed") {
+        params.lora_auto_embed = true;
+        params.lora_init_without_apply = true; // auto-embed implies init-without-apply
+        return true;
+    }
     if (arg == "--control-vector") {
         CHECK_ARG
         params.control_vectors.push_back({ 1.0f, argv[i], });
@@ -2627,6 +2632,7 @@ void gpt_params_print_usage(int /*argc*/, char ** argv, const gpt_params & param
     options.push_back({ "server",      "-sps,  --slot-prompt-similarity SIMILARITY",
                                                                         "how much the prompt of a request must match the prompt of a slot in order to use that slot (default: %.2f, 0.0 = disabled)\n", params.slot_prompt_similarity });
     options.push_back({ "server",      "       --lora-init-without-apply",     "load LoRA adapters without applying them (apply later via POST /lora-adapters) (default: %s)", params.lora_init_without_apply ? "enabled" : "disabled"});
+    options.push_back({ "server",      "       --lora-auto-embed",             "auto-toggle LoRA: enable (scale=1.0) for embeddings, disable (scale=0.0) for chat/completions (default: %s)", params.lora_auto_embed ? "enabled" : "disabled"});
 
 #ifndef LOG_DISABLE_LOGS
     options.push_back({ "logging" });
@@ -4381,6 +4387,7 @@ void yaml_dump_non_result_info(FILE * stream, const gpt_params & params, const l
         }
     }
     fprintf(stream, "lora_init_without_apply: %s # default: false\n", params.lora_init_without_apply ? "true" : "false");
+    fprintf(stream, "lora_auto_embed: %s # default: false\n", params.lora_auto_embed ? "true" : "false");
     fprintf(stream, "main_gpu: %d # default: 0\n", params.main_gpu);
     fprintf(stream, "max_gpu: %d # default: 0\n", params.max_gpu);
     fprintf(stream, "ncmoe: %d # default: 0\n", params.ncmoe);

@@ -2269,6 +2269,7 @@ void server_context::process_single_task(server_task&& task) {
     case SERVER_TASK_TYPE_SET_LORA:
     {
         llama_lora_adapters_apply(ctx, lora_adapters);
+        lora_auto_embed_state = -1; // invalidate auto-embed state tracker
         server_task_result result;
         result.id = task.id;
         result.stop = true;
@@ -3655,6 +3656,19 @@ void server_context::process_batch_tokens(int32_t & n_batch) {
             0, 0, 0, // unused
         };
 
+        // auto-toggle LoRA: embeddings get LoRA, chat does not
+        // lora_auto_embed_desired is set by update_slots() before calling process_batch_tokens()
+        if (!lora_adapters.empty()) {
+            const int desired = lora_auto_embed_desired;
+            if (lora_auto_embed_state != desired) {
+                for (auto & la : lora_adapters) {
+                    la.scale = desired ? 1.0f : 0.0f;
+                }
+                llama_lora_adapters_apply(ctx, lora_adapters);
+                lora_auto_embed_state = desired;
+            }
+        }
+
         const int ret = llama_decode(ctx, batch_view);
         if (ret != 0) {
             if (n_batch == 1 || ret < 0) {
@@ -3880,6 +3894,9 @@ void server_context::update_slots() {
 
     // make sure we're in the right embedding mode
     llama_set_embeddings(ctx, batch_type == 1);
+
+    // tell process_batch_tokens() whether this is an embedding batch
+    lora_auto_embed_desired = (batch_type == 1) ? 1 : 0;
 
     // process the created batch of tokens
     process_batch_tokens(n_batch); // Decode with batch

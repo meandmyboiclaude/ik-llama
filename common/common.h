@@ -290,6 +290,7 @@ struct gpt_params {
     std::vector<std::pair<int,int>> offload_policy;
 
     bool lora_init_without_apply = false; // only load lora to memory, but do not apply it to ctx (user can manually apply lora later using llama_lora_adapter_apply)
+    bool lora_auto_embed = false; // automatically enable LoRA for embedding requests and disable for chat/completion (requires lora_init_without_apply)
     std::vector<llama_lora_adapter_info> lora_adapters; // lora adapter path with user defined scale
 
     std::vector<llama_control_vector_load_info> control_vectors; // control vector with user defined scale

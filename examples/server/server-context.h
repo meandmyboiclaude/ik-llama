@@ -261,6 +261,10 @@ struct server_context {
     server_chat_params  chat_params;
     std::map<std::string, bool> chat_template_caps;
 
+    // LoRA auto-embed: auto-toggle LoRA for embedding vs chat batches
+    int lora_auto_embed_state = -1;   // current: -1=unknown, 0=off, 1=on
+    int lora_auto_embed_desired = 0;  // set by update_slots() before process_batch_tokens()
+
     // Necessary similarity of prompt for slot selection
     float slot_prompt_similarity = 0.0f;
     int32_t cache_ram_n_min = 0;
