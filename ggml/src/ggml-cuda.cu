@@ -213,9 +213,11 @@ static ggml_cuda_device_info ggml_cuda_init() {
     for (int id = 0; id < info.device_count; ++id) {
         int device_vmm = 0;
 
-#if !defined(GGML_USE_HIPBLAS) && !defined(GGML_CUDA_NO_VMM) && !defined(GGML_USE_MUSA)
+#if !defined(GGML_USE_HIPBLAS) && !defined(GGML_USE_MUSA)
         CUdevice device;
         CU_CHECK(cuDeviceGet(&device, id));
+
+#if !defined(GGML_CUDA_NO_VMM)
         CU_CHECK(cuDeviceGetAttribute(&device_vmm, CU_DEVICE_ATTRIBUTE_VIRTUAL_MEMORY_MANAGEMENT_SUPPORTED, device));
 
         if (device_vmm) {
@@ -225,7 +227,38 @@ static ggml_cuda_device_info ggml_cuda_init() {
             alloc_prop.location.id = id;
             CU_CHECK(cuMemGetAllocationGranularity(&info.devices[id].vmm_granularity, &alloc_prop, CU_MEM_ALLOC_GRANULARITY_RECOMMENDED));
         }
-#endif // !defined(GGML_USE_HIPBLAS) && !defined(GGML_CUDA_NO_VMM) && !defined(GGML_USE_MUSA)
+#endif // !defined(GGML_CUDA_NO_VMM)
+        info.devices[id].vmm = !!device_vmm;
+
+        // Use driver API to query device properties without creating a CUDA context.
+        // This avoids allocating 120-550 MB of VRAM per device during init.
+        // (upstream PR #20595)
+        int cc_major, cc_minor, nsm, smpb, smpbo;
+        CU_CHECK(cuDeviceGetAttribute(&cc_major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, device));
+        CU_CHECK(cuDeviceGetAttribute(&cc_minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, device));
+        CU_CHECK(cuDeviceGetAttribute(&nsm,      CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT, device));
+        CU_CHECK(cuDeviceGetAttribute(&smpb,     CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK, device));
+        CU_CHECK(cuDeviceGetAttribute(&smpbo,    CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK_OPTIN, device));
+
+        size_t dev_total_vram;
+        CU_CHECK(cuDeviceTotalMem(&dev_total_vram, device));
+
+        char dev_name[256];
+        CU_CHECK(cuDeviceGetName(dev_name, sizeof(dev_name), device));
+
+        GGML_CUDA_LOG_INFO("  Device %d: %s, compute capability %d.%d, VMM: %s, VRAM: %zu MiB\n", id, dev_name, cc_major, cc_minor, device_vmm ? "yes" : "no",
+                dev_total_vram/(1024*1024));
+
+        info.default_tensor_split[id] = total_vram;
+        total_vram += dev_total_vram;
+
+        info.devices[id].nsm   = nsm;
+        info.devices[id].smpb  = smpb;
+        info.devices[id].smpbo = smpbo;
+        info.devices[id].cc    = 100*cc_major + 10*cc_minor;
+        info.devices[id].total_vram = dev_total_vram;
+
+#else // HIP or MUSA — use runtime API
         info.devices[id].vmm = !!device_vmm;
 
         cudaDeviceProp prop;
@@ -245,6 +278,8 @@ static ggml_cuda_device_info ggml_cuda_init() {
         info.devices[id].smpbo = prop.sharedMemPerBlockOptin;
         info.devices[id].cc = 100*prop.major + 10*prop.minor;
 #endif // defined(GGML_USE_HIPBLAS) && defined(__HIP_PLATFORM_AMD__)
+        info.devices[id].total_vram = prop.totalGlobalMem;
+#endif // !defined(GGML_USE_HIPBLAS) && !defined(GGML_USE_MUSA)
     }
 
     for (int id = 0; id < info.device_count; ++id) {
