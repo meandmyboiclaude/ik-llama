@@ -599,6 +599,16 @@ void llm_build_context::llm_build_kv_store(
     ggml_build_forward_expand(graph, lctx.cache_copies[2*il+1].cpy);
 }
 
+// Check if any active LoRA adapter has a weight for the given tensor.
+static bool llm_has_lora_for(struct llama_context & lctx, struct ggml_tensor * w) {
+    for (auto & it : lctx.lora_adapters) {
+        if (it.first->get_weight(w) != nullptr) {
+            return true;
+        }
+    }
+    return false;
+}
+
 ggml_tensor * llm_build_context::llm_build_lora_mm(
         struct llama_context & lctx,
          struct ggml_context * ctx0,
@@ -619,6 +629,52 @@ ggml_tensor * llm_build_context::llm_build_lora_mm(
         );
         ab_cur = ggml_scale(ctx0, ab_cur, scale);
         res = ggml_add(ctx0, res, ab_cur);
+    }
+    return res;
+}
+
+ggml_tensor * llm_build_context::llm_build_lora_mm_merged(
+        struct llama_context & lctx,
+         struct ggml_context * ctx0,
+          struct ggml_tensor * w_merged,
+          struct ggml_tensor * cur,
+          struct ggml_tensor ** comp_w,
+          int n_comp) {
+    // Base matmul uses the merged weight for maximum performance
+    struct ggml_tensor * res = ggml_mul_mat(ctx0, w_merged, cur);
+
+    // If no LoRA adapters are active, return immediately
+    if (lctx.lora_adapters.empty()) {
+        return res;
+    }
+
+    // Apply LoRA corrections using component tensors (which have the original names
+    // that match LoRA adapter entries). Each component's LoRA output is accumulated
+    // into the merged result at the correct offset using ggml_acc.
+    for (auto & it : lctx.lora_adapters) {
+        size_t offset = 0;
+        for (int c = 0; c < n_comp; c++) {
+            struct llama_lora_weight * lora = it.first->get_weight(comp_w[c]);
+            if (lora != nullptr) {
+                const float alpha = it.first->alpha;
+                const float rank  = (float) lora->b->ne[0];
+                const float scale = alpha ? it.second * alpha / rank : it.second;
+                struct ggml_tensor * ab_cur = ggml_mul_mat(
+                    ctx0, lora->b,
+                    ggml_mul_mat(ctx0, lora->a, cur)
+                );
+                ab_cur = ggml_scale(ctx0, ab_cur, scale);
+                // ab_cur has shape [comp_w[c]->ne[1], n_tokens]
+                // Accumulate into res at the correct row offset
+                res = ggml_acc(ctx0, res, ab_cur,
+                    res->nb[1],   // nb1: stride between rows in res
+                    res->nb[2],   // nb2
+                    res->nb[3],   // nb3
+                    offset);      // byte offset to start of this component's rows
+            }
+            // Advance offset by the component's output size (number of output rows * element size)
+            offset += comp_w[c]->ne[1] * ggml_type_size(GGML_TYPE_F32);
+        }
     }
     return res;
 }
@@ -749,6 +805,7 @@ ggml_tensor * llm_build_context::llm_build_ffn(
 
     if (!up_b && !up_s && !gate_b && !gate_s && !down_b && !down_s &&
         up->extra && gate->extra && down->extra && type_gate == LLM_FFN_PAR &&
+        !llm_has_lora_for(lctx, up) && !llm_has_lora_for(lctx, gate) &&
         (type_op == LLM_FFN_SILU || type_op == LLM_FFN_RELU || (type_op == LLM_FFN_GELU && !act_scales))) {
         //printf("%s: %s\n", __func__, ggml_op_name(input->op));
         auto unary_op = type_op == LLM_FFN_SILU ? GGML_UNARY_OP_SILU :
@@ -827,7 +884,11 @@ ggml_tensor * llm_build_context::llm_build_ffn(
         cur = ggml_cast(ctx, cur, GGML_TYPE_F32);
     }
 
-    if (lctx.cparams.fused_up_gate &&
+    // Skip fused up/gate when LoRA adapters target these tensors, because the fused
+    // op does the matmul internally and bypasses llm_build_lora_mm entirely.
+    // The non-fused fallback path below handles LoRA correctly.
+    bool lora_blocks_fuse = llm_has_lora_for(lctx, up) || llm_has_lora_for(lctx, gate);
+    if (lctx.cparams.fused_up_gate && !lora_blocks_fuse &&
         up && gate && !up_b && !up_s && !gate_b && !gate_s && type_gate == LLM_FFN_PAR &&
         (type_op == LLM_FFN_SILU || type_op == LLM_FFN_RELU || (type_op == LLM_FFN_GELU && !act_scales))) {
         auto unary_op = type_op == LLM_FFN_SILU ? GGML_UNARY_OP_SILU :
@@ -1870,7 +1931,17 @@ std::tuple<ggml_tensor*, ggml_tensor*, ggml_tensor*> llm_build_context::llm_buil
     const int64_t n_embd_head_k = hparams.n_embd_head_k;
     const int64_t n_embd_gqa  = hparams.n_embd_v_gqa(il);
     if (wqkv) {
-        auto qkv = llm_build_lora_mm(lctx, ctx0, wqkv, cur);
+        ggml_tensor * qkv;
+        if (wq && wk && wv && !lctx.lora_adapters.empty()) {
+            // Merged QKV from --merge-qkv: use component view tensors for LoRA lookup
+            // since LoRA adapters have entries for the original q/k/v tensor names,
+            // not the merged "attn_qkv" name.
+            ggml_tensor * comp[] = { wq, wk, wv };
+            qkv = llm_build_lora_mm_merged(lctx, ctx0, wqkv, cur, comp, 3);
+        } else {
+            // Native QKV (model has a single qkv tensor) or no LoRA active
+            qkv = llm_build_lora_mm(lctx, ctx0, wqkv, cur);
+        }
         if (add_graph_split) {
             qkv->op_params[GGML_MAX_OP_PARAMS / sizeof(int32_t) - 1] = 0xff;
         }
@@ -1904,7 +1975,15 @@ std::tuple<ggml_tensor*, ggml_tensor*, ggml_tensor*> llm_build_context::llm_buil
     }
 
     if (wqk) {
-        auto qk = llm_build_lora_mm(lctx, ctx0, wqk, cur);
+        ggml_tensor * qk;
+        if (wq && wk && !lctx.lora_adapters.empty()) {
+            // Merged QK from --merge-qkv (V separate due to type mismatch):
+            // use component view tensors for LoRA lookup
+            ggml_tensor * comp[] = { wq, wk };
+            qk = llm_build_lora_mm_merged(lctx, ctx0, wqk, cur, comp, 2);
+        } else {
+            qk = llm_build_lora_mm(lctx, ctx0, wqk, cur);
+        }
         if (add_graph_split) {
             qk->op_params[GGML_MAX_OP_PARAMS / sizeof(int32_t) - 1] = 0xff;
         }

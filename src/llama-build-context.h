@@ -297,6 +297,14 @@ struct llm_build_context {
     static ggml_tensor * llm_build_lora_mm(llama_context & lctx, ggml_context * ctx0,
             ggml_tensor * w, ggml_tensor * cur);
 
+    // Merged matmul with component-wise LoRA application.
+    // Performs: result = matmul(w_merged, cur) + concat(lora(comp[0], cur), lora(comp[1], cur), ...)
+    // comp_w[i] are the view tensors with original names for LoRA lookup.
+    // When no LoRA adapters are active, this is equivalent to llm_build_lora_mm.
+    static ggml_tensor * llm_build_lora_mm_merged(llama_context & lctx, ggml_context * ctx0,
+            ggml_tensor * w_merged, ggml_tensor * cur,
+            ggml_tensor ** comp_w, int n_comp);
+
     static ggml_tensor * llm_build_lora_mm_id(llama_context & lctx, ggml_context * ctx0,
           ggml_tensor * w, ggml_tensor * cur, ggml_tensor * ids);
 
