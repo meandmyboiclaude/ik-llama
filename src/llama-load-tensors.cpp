@@ -3810,6 +3810,7 @@ bool create_tensors_helper::create_tensors() {
     }
     switch (model.arch) {
         case LLM_ARCH_LLAMA:
+        case LLM_ARCH_LLAMA_EMBED:
         case LLM_ARCH_REFACT:
         case LLM_ARCH_MINICPM:
         case LLM_ARCH_GRANITE:
