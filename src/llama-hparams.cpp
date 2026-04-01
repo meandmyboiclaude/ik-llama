@@ -178,6 +178,10 @@ void llm_load_hparams(
                         default: model.type = e_model::MODEL_UNKNOWN;
                     }
                 }
+                if (model.arch == LLM_ARCH_LLAMA_EMBED) {
+                    hparams.causal_attn = false;
+                    ml.get_key(LLM_KV_POOLING_TYPE, hparams.pooling_type, false);
+                }
             } break;
         case LLM_ARCH_LLAMA4:
             {

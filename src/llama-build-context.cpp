@@ -2308,16 +2308,21 @@ ggml_cgraph * llm_build_context::build_llama() {
 
     cur = inpL;
 
-    // lm_head
-    cur = build_output(lctx, ctx0, cur, model.output, model.output_norm, cb);
+    if (model.arch == LLM_ARCH_LLAMA_EMBED) {
+        // Embedding model: output normalized hidden state, skip lm_head
+        cur = llm_build_context::llm_build_norm(ctx0, cur, hparams, model.output_norm, NULL, LLM_NORM_RMS, cb, -1);
+        cb(cur, "result_norm", -1);
+    } else {
+        // lm_head
+        cur = build_output(lctx, ctx0, cur, model.output, model.output_norm, cb);
 
-    // For Granite architecture
-    if (hparams.f_logit_scale) {
-        // Why is hparams.f_logit_scale not simply absorbed into model.output ?
-        cur = ggml_scale(ctx0, cur, 1.0f / hparams.f_logit_scale);
+        // For Granite architecture
+        if (hparams.f_logit_scale) {
+            cur = ggml_scale(ctx0, cur, 1.0f / hparams.f_logit_scale);
+        }
+
+        cb(cur, "result_output", -1);
     }
-
-    cb(cur, "result_output", -1);
 
     ggml_build_forward_expand(gf, cur);
 
