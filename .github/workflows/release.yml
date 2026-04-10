@@ -1879,7 +1879,7 @@ jobs:
           ⚠️ CUDA Build Notice
 
           CUDA builds have been downgraded to CUDA 13.1 due to an NVIDIA bug that affects certain quantized models when binaries are compiled with CUDA 13.2.
-          - This issue only impacts older ik_llama.cpp binaries built with CUDA 13.2.
+          - This issue only impacts ik_llama.cpp binaries built with CUDA 13.2 (e.g. previous releases).
           - Your installed CUDA 13.2 drivers are not affected — no downgrade is needed.
           - NVIDIA is currently working on a fix.
 
