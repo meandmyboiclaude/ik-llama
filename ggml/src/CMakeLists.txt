@@ -362,6 +362,9 @@ if (GGML_CUDA)
     
                 if (CUDAToolkit_VERSION VERSION_GREATER_EQUAL "12.8")
                     list(APPEND ARCH_LIST "120a-real")
+                endif()
+    
+                if (CUDAToolkit_VERSION VERSION_GREATER_EQUAL "13.0")
                     list(APPEND ARCH_LIST "121a-real")
                 endif()
     
