@@ -361,7 +361,8 @@ if (GGML_CUDA)
                 endif()
     
                 if (CUDAToolkit_VERSION VERSION_GREATER_EQUAL "12.8")
-                    list(APPEND ARCH_LIST "120-real")
+                    list(APPEND ARCH_LIST "120a-real")
+                    list(APPEND ARCH_LIST "121a-real")
                 endif()
     
                 set(CMAKE_CUDA_ARCHITECTURES ${ARCH_LIST})
