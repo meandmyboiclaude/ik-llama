@@ -200,6 +200,8 @@ struct common_params_speculative {
     std::string cache_type_k = ""; // KV cache data type for K for the draft model
     std::string cache_type_v = ""; // KV cache data type for V for the draft model
 
+    bool autotune = false; // automatically optimize speculative params for max tokens/sec
+
     bool has_dft() const {
         return !model.empty() || !params.empty();
         //return !mparams_dft.path.empty() || !mparams_dft.hf_repo.empty();
@@ -228,6 +230,7 @@ struct gpt_params {
     int32_t ncmoe                 =       0; // number of layers in which MoE tensors are left in VRAM
     int32_t fit_margin            =       0; // safety margin for auto-fit in MiB
     bool    fit                   =   false; // automatically fit model (for now just using MoE tensor overrides)
+    int32_t worst_graph_tokens    =       0; // number of tokens to use when reserving the worst graph
     float   tensor_split[128]     =     {0}; // how split tensors should be distributed across GPUs
     int32_t grp_attn_n            =       1; // group-attention factor
     int32_t grp_attn_w            =     512; // group-attention width
@@ -282,8 +285,18 @@ struct gpt_params {
     std::vector<std::string> antiprompt;   // strings upon which more user input is prompted (a.k.a. reverse prompts)
     std::vector<std::string> ban_phrases;  // strings that are banned in generation
     int32_t banned_n                 =  1; // number of tokens that are banned in the phrase
-    size_t n_buffer 				 =  0; // number of token buffers for string ban
+    size_t n_buffer                  =  0; // number of token buffers for string ban
     bool can_ban_phrases             = true;  // whether to ban strings
+
+    std::vector<std::vector<std::tuple<
+        uint32_t        // lower codepoint
+        ,uint32_t       // upper codepoint
+        ,std::string    // unicode script name
+        ,float          // bias
+    >>> allow_ruless;
+    std::vector<std::string> allow_pieces;  // each token to allowlist
+    std::vector<std::string> allow_kws;     // keywords
+    size_t allow_kw_delay;  // minimum n_decoded before first keyword is active
 
     std::vector<llama_model_kv_override> kv_overrides;
     std::vector<llama_model_tensor_buft_override> tensor_buft_overrides;
@@ -371,6 +384,15 @@ struct gpt_params {
 
     std::string reduce_type = "f16";
 
+    std::string type_k_first = "f16";
+    std::string type_k_last  = "f16";
+    std::string type_v_first = "f16";
+    std::string type_v_last  = "f16";
+    int32_t     n_k_first    = -1;
+    int32_t     n_k_last     = -1;
+    int32_t     n_v_first    = -1;
+    int32_t     n_v_last     = -1;
+
     // multimodal models (see examples/mtmd)
     common_params_model mmproj;
     bool mmproj_use_gpu = true;     // use GPU for multimodal model
@@ -378,6 +400,7 @@ struct gpt_params {
     std::vector<std::string> image; // path to image file(s)
     int image_min_tokens = -1;
     int image_max_tokens = -1;
+    std::string mtmd_kq_type = "f32";
 
     // embedding
     bool embedding         = false; // get only sentence embedding
@@ -723,3 +746,9 @@ void yaml_dump_non_result_info(
     const std::string & timestamp, const std::vector<int> & prompt_tokens, const char * model_desc);
 
 std::string string_format(const char* fmt, ...);
+
+//
+// Argparse utils
+//
+
+std::tuple<uint32_t, uint32_t, std::string, float> argparse_allowlist_unicode_rule(std::string argstr);

@@ -1677,6 +1677,23 @@ static const ggml_type_traits_t type_traits[GGML_TYPE_COUNT] = {
         .nrows                    = 1,
         .row_meta_size            = 4,
     },
+    [GGML_TYPE_Q1_0_G128] = {
+        .type_name                = "q1_0_g128",
+        .blck_size                = QK1_0_G128,
+        .type_size                = sizeof(block_q1_0_g128),
+        .is_quantized             = true,
+        .to_float                 = (ggml_to_float_t) dequantize_row_q1_0_g128,
+        .from_float               = quantize_row_q1_0_g128,
+        .from_float_ref           = (ggml_from_float_t)quantize_row_q1_0_g128_ref,
+        .vec_dot                  = vec_dot_q1_0_g128_q8_0,
+#if defined __AVX2__
+        .vec_dot_type             = GGML_TYPE_Q8_2_X4,
+#else
+        .vec_dot_type             = GGML_TYPE_Q8_0_X4,
+#endif
+        .nrows                    = 1,
+        .row_meta_size            = 0,
+    },
     [GGML_TYPE_IQ3_K] = {
         .type_name                = "iq3_k",
         .blck_size                = QK_K,
@@ -3971,12 +3988,15 @@ static ggml_float ggml_vec_soft_max_f32(const int n, float * y, const float * x,
     int i = 0;
     ggml_float sum = 0;
 #if defined(__AVX512F__) && defined(__AVX512DQ__)
+    __m512 vsum = _mm512_setzero_ps();
     for (; i + 15 < n; i += 16) {
         __m512 val = ggml_v_expf(_mm512_sub_ps(_mm512_loadu_ps(x + i),
                                                _mm512_set1_ps(max)));
         _mm512_storeu_ps(y + i, val);
-        sum += (ggml_float)_mm512_reduce_add_ps(val);
+        vsum = _mm512_add_ps(vsum, val);
+        //sum += (ggml_float)_mm512_reduce_add_ps(val);
     }
+    sum = (ggml_float)_mm512_reduce_add_ps(vsum);
 #elif defined(__AVX2__) && defined(__FMA__)
     for (; i + 7 < n; i += 8) {
         __m256 val = ggml_v_expf(_mm256_sub_ps(_mm256_loadu_ps(x + i),
@@ -4299,9 +4319,10 @@ static const char * GGML_OP_NAME[GGML_OP_COUNT] = {
     "REDUCE",
     "FAKE_CPY",
     "FUSED_NORM",
+    "FUSED_RMS_RMS_ADD",
 };
 
-static_assert(GGML_OP_COUNT == 101, "GGML_OP_COUNT != 101");
+static_assert(GGML_OP_COUNT == 102, "GGML_OP_COUNT != 102");
 
 static const char * GGML_OP_SYMBOL[GGML_OP_COUNT] = {
     "none",
@@ -4418,9 +4439,11 @@ static const char * GGML_OP_SYMBOL[GGML_OP_COUNT] = {
     "reduce(x1,x2,...)",
     "fake_cpy(x,y)",
     "norm(x,y)",
+    "rms(x1)+rms(x2)",
+
 };
 
-static_assert(GGML_OP_COUNT == 101, "GGML_OP_COUNT != 101");
+static_assert(GGML_OP_COUNT == 102, "GGML_OP_COUNT != 102");
 
 static_assert(GGML_OP_POOL_COUNT == 2, "GGML_OP_POOL_COUNT != 2");
 
@@ -4897,6 +4920,7 @@ enum ggml_type ggml_ftype_to_ggml_type(enum ggml_ftype ftype) {
         case GGML_FTYPE_MOSTLY_IQ2_KT:        wtype = GGML_TYPE_IQ2_KT;   break;
         case GGML_FTYPE_MOSTLY_IQ3_KT:        wtype = GGML_TYPE_IQ3_KT;   break;
         case GGML_FTYPE_MOSTLY_IQ4_KT:        wtype = GGML_TYPE_IQ4_KT;   break;
+        case GGML_FTYPE_MOSTLY_Q1_0_128:      wtype = GGML_TYPE_Q1_0_G128;break;
         case GGML_FTYPE_MOSTLY_IQ3_K:         wtype = GGML_TYPE_IQ3_K;    break;
         case GGML_FTYPE_MOSTLY_IQ3_KS:        wtype = GGML_TYPE_IQ3_KS;   break;
         case GGML_FTYPE_MOSTLY_IQ2_KL:        wtype = GGML_TYPE_IQ2_KL;   break;
@@ -7452,6 +7476,36 @@ struct ggml_tensor * ggml_rms_norm_inplace(
         float eps) {
     return ggml_rms_norm_impl(ctx, a, eps, true);
 }
+
+struct ggml_tensor * ggml_fused_rms_rms_add(
+            struct ggml_context * ctx,
+            struct ggml_tensor  * x1,
+            struct ggml_tensor  * c1,
+            struct ggml_tensor  * x2,
+            struct ggml_tensor  * c2,
+            float                 eps) {
+
+    GGML_ASSERT(ggml_is_contiguous(x1) && ggml_is_contiguous(x2));
+    GGML_ASSERT(ggml_are_same_shape(x1, x2));
+    GGML_ASSERT(ggml_nrows(c1) == 1 && ggml_nrows(c2) == 1);
+    GGML_ASSERT(x1->ne[0] == c1->ne[0] && x2->ne[0] == c2->ne[0]);
+    GGML_ASSERT(x1->type == x2->type);
+    GGML_ASSERT(x1->type == GGML_TYPE_F16 || x1->type == GGML_TYPE_BF16 || x1->type == GGML_TYPE_F32);
+    GGML_ASSERT(c1->type == GGML_TYPE_F32 && c2->type == GGML_TYPE_F32);
+
+    struct ggml_tensor * result = ggml_new_tensor_4d(ctx, GGML_TYPE_F32, x1->ne[0], x1->ne[1], x1->ne[2], x1->ne[3]);
+
+    memcpy(result->op_params, &eps, sizeof(eps));
+
+    result->op = GGML_OP_FUSED_RMS_RMS_ADD;
+    result->src[0] = x1;
+    result->src[1] = c1;
+    result->src[2] = x2;
+    result->src[3] = c2;
+
+    return result;
+}
+
 
 static struct ggml_tensor * ggml_fused_rms_norm_impl(
         struct ggml_context * ctx,
@@ -12814,6 +12868,7 @@ static void ggml_compute_forward_add(
         case GGML_TYPE_IQ2_KT:
         case GGML_TYPE_IQ3_KT:
         case GGML_TYPE_IQ4_KT:
+        case GGML_TYPE_Q1_0_G128:
         case GGML_TYPE_IQ3_K:
         case GGML_TYPE_IQ3_KS:
         case GGML_TYPE_IQ2_KL:
@@ -13367,6 +13422,7 @@ static void ggml_compute_forward_add1(
         case GGML_TYPE_IQ2_KT:
         case GGML_TYPE_IQ3_KT:
         case GGML_TYPE_IQ4_KT:
+        case GGML_TYPE_Q1_0_G128:
         case GGML_TYPE_IQ3_K:
         case GGML_TYPE_IQ3_KS:
         case GGML_TYPE_IQ2_KL:
@@ -13546,6 +13602,7 @@ static void ggml_compute_forward_acc(
         case GGML_TYPE_IQ2_KT:
         case GGML_TYPE_IQ3_KT:
         case GGML_TYPE_IQ4_KT:
+        case GGML_TYPE_Q1_0_G128:
         case GGML_TYPE_IQ3_K:
         case GGML_TYPE_IQ3_KS:
         case GGML_TYPE_IQ2_KL:
@@ -17871,6 +17928,7 @@ static void ggml_compute_forward_out_prod(
         case GGML_TYPE_IQ2_KT:
         case GGML_TYPE_IQ3_KT:
         case GGML_TYPE_IQ4_KT:
+        case GGML_TYPE_Q1_0_G128:
         case GGML_TYPE_IQ3_K:
         case GGML_TYPE_IQ3_KS:
         case GGML_TYPE_IQ2_KL:
@@ -18294,6 +18352,7 @@ static void ggml_compute_forward_set(
         case GGML_TYPE_IQ2_KT:
         case GGML_TYPE_IQ3_KT:
         case GGML_TYPE_IQ4_KT:
+        case GGML_TYPE_Q1_0_G128:
         case GGML_TYPE_IQ3_K:
         case GGML_TYPE_IQ3_KS:
         case GGML_TYPE_IQ2_KL:
@@ -18623,6 +18682,7 @@ static void ggml_compute_forward_get_rows(
         case GGML_TYPE_IQ2_KT:
         case GGML_TYPE_IQ3_KT:
         case GGML_TYPE_IQ4_KT:
+        case GGML_TYPE_Q1_0_G128:
         case GGML_TYPE_IQ3_K:
         case GGML_TYPE_IQ3_KS:
         case GGML_TYPE_IQ2_KL:
@@ -19380,6 +19440,7 @@ static void ggml_compute_forward_clamp(
         case GGML_TYPE_IQ2_KT:
         case GGML_TYPE_IQ3_KT:
         case GGML_TYPE_IQ4_KT:
+        case GGML_TYPE_Q1_0_G128:
         case GGML_TYPE_IQ3_K:
         case GGML_TYPE_IQ3_KS:
         case GGML_TYPE_IQ2_KL:
@@ -21667,14 +21728,14 @@ static void ggml_compute_forward_flash_attn_ext_f16(
 
 #if GGML_USE_IQK_MULMAT
     // For now we do not implement sinks in the iqk FA implementation
-    if (iqk_flash_attn_noalibi(q->type, mask->type, max_bias,
+    if (iqk_flash_attn_noalibi(q->type, mask ? mask->type : GGML_TYPE_F16, max_bias,
                 q->ne[3], q->ne[2], q->nb[3], q->nb[2],
                 k->ne[3], k->ne[2], k->nb[3], k->nb[2],
                 v->ne[3], v->ne[2], v->nb[3], v->nb[2],
                 dst->ne[2], dst->ne[1], dst->nb[1],
                 k->type, v->type,
-                Dk, Dv, neq1, nek1, q->nb[1], k->nb[1], v->nb[1], mask->nb[1],
-                q->data, k->data, v->data, mask->data, sinks ? sinks->data : NULL,
+                Dk, Dv, neq1, nek1, q->nb[1], k->nb[1], v->nb[1], mask ? mask->nb[1] : 0,
+                q->data, k->data, v->data, mask ? mask->data : NULL, sinks ? sinks->data : NULL,
                 scale, softcap, (float *)dst->data,
                 params->wdata, (barrier_t)ggml_barrier, (void *)params->shared, ith, nth, dst->op_params[4])) return;
 
@@ -24175,6 +24236,10 @@ static int ggml_compute_forward(struct ggml_compute_params * params, struct ggml
             {
                 ggml_compute_forward_fused_rms_norm(params, tensor);
             } break;
+        case GGML_OP_FUSED_RMS_RMS_ADD:
+            {
+                iqk_rms_rms_add(tensor, params->ith, params->nth);
+            } break;
         case GGML_OP_FUSED_NORM:
             {
                 ggml_compute_forward_fused_norm(params, tensor);
@@ -25012,6 +25077,7 @@ static void ggml_compute_backward(struct ggml_context * ctx, struct ggml_tensor 
                 }
             } break;
         case GGML_OP_FUSED_RMS_NORM:
+        case GGML_OP_FUSED_RMS_RMS_ADD:
         case GGML_OP_FUSED_NORM:
             {
                 GGML_ABORT("fatal error"); // TODO: not implemented
@@ -26212,6 +26278,7 @@ static int ggml_get_n_tasks(struct ggml_tensor * node, int n_threads) {
         case GGML_OP_NORM:
         case GGML_OP_RMS_NORM:
         case GGML_OP_FUSED_RMS_NORM:
+        case GGML_OP_FUSED_RMS_RMS_ADD:
         case GGML_OP_FUSED_NORM:
         case GGML_OP_RMS_NORM_BACK:
         case GGML_OP_GROUP_NORM:
@@ -28458,6 +28525,7 @@ size_t ggml_quantize_chunk(
         case GGML_TYPE_IQ2_KT:  result = quantize_iq2_kt (src + start, (char *) dst + start_row * row_size, nrows, n_per_row, imatrix); break;
         case GGML_TYPE_IQ3_KT:  result = quantize_iq3_kt (src + start, (char *) dst + start_row * row_size, nrows, n_per_row, imatrix); break;
         case GGML_TYPE_IQ4_KT:  result = quantize_iq4_kt (src + start, (char *) dst + start_row * row_size, nrows, n_per_row, imatrix); break;
+        case GGML_TYPE_Q1_0_G128: result = quantize_q1_0_g128(src + start, (char *) dst + start_row * row_size, nrows, n_per_row, imatrix); break;
         case GGML_TYPE_IQ3_K:   result = quantize_iq3_k  (src + start, (char *) dst + start_row * row_size, nrows, n_per_row, imatrix); break;
         case GGML_TYPE_IQ3_KS:  result = quantize_iq3_ks (src + start, (char *) dst + start_row * row_size, nrows, n_per_row, imatrix); break;
         case GGML_TYPE_IQ2_KL:  result = quantize_iq2_kl (src + start, (char *) dst + start_row * row_size, nrows, n_per_row, imatrix); break;
